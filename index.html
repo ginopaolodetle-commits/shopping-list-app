@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Compras - Calculadora de Precios</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛒 Mi Lista de Compras</h1>
+            <p class="subtitle">Calcula el total antes de llegar a la caja</p>
+        </header>
+
+        <main>
+            <!-- Formulario para agregar artículos -->
+            <section class="input-section">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="productName" 
+                        placeholder="Nombre del producto" 
+                        maxlength="50"
+                    >
+                    <input 
+                        type="number" 
+                        id="productPrice" 
+                        placeholder="Precio" 
+                        min="0" 
+                        step="0.01"
+                    >
+                    <button id="addBtn" class="add-btn">Agregar</button>
+                </div>
+            </section>
+
+            <!-- Lista de artículos -->
+            <section class="items-section">
+                <div id="itemsList" class="items-list">
+                    <!-- Los items se agregarán aquí dinámicamente -->
+                </div>
+
+                <!-- Mensaje cuando la lista está vacía -->
+                <div id="emptyMessage" class="empty-message">
+                    <p>📝 Tu lista está vacía</p>
+                    <p>Agrega productos para comenzar</p>
+                </div>
+            </section>
+
+            <!-- Resumen y total -->
+            <section class="summary-section">
+                <div class="summary-info">
+                    <div class="info-item">
+                        <span class="label">Productos:</span>
+                        <span id="itemCount" class="value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Total:</span>
+                        <span id="totalPrice" class="value total">$0.00</span>
+                    </div>
+                </div>
+
+                <button id="clearBtn" class="clear-btn">Limpiar Lista</button>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
