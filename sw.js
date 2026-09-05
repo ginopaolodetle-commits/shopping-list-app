@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shopping-list-v1';
+const CACHE_NAME = 'shopping-list-v2';
 const urlsToCache = [
   '/shopping-list-app/',
   '/shopping-list-app/index.html',
@@ -24,7 +24,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activar el Service Worker
+// Activar el Service Worker y borrar cachés antiguas
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -41,7 +41,6 @@ self.addEventListener('activate', event => {
 
 // Interceptar peticiones
 self.addEventListener('fetch', event => {
-  // Solo para GET
   if (event.request.method !== 'GET') {
     return;
   }
@@ -49,18 +48,15 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Si está en caché, devolverlo
         if (response) {
           return response;
         }
 
         return fetch(event.request).then(response => {
-          // No cachear si no es 200
           if (!response || response.status !== 200 || response.type === 'error') {
             return response;
           }
 
-          // Clonar la respuesta
           const responseToCache = response.clone();
           caches.open(CACHE_NAME)
             .then(cache => {
@@ -69,7 +65,6 @@ self.addEventListener('fetch', event => {
 
           return response;
         }).catch(() => {
-          // Si falla la red, devolver una página offline
           return caches.match('/shopping-list-app/index.html');
         });
       })
