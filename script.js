@@ -30,9 +30,12 @@ productPriceInput.addEventListener('keypress', (e) => {
 // Función para agregar un item
 function addItem() {
     const name = productNameInput.value.trim();
-    const price = parseFloat(productPriceInput.value);
+    const rawPrice = productPriceInput.value.trim();
+    
+    // Si la persona ingresó precio se procesa, de lo contrario se deja en 0
+    const price = rawPrice !== '' ? parseFloat(rawPrice) : 0;
 
-    // Validaciones
+    // Validaciones: solo verificamos el nombre
     if (!name) {
         showNotification('Por favor ingresa el nombre del producto', 'error');
         productNameInput.focus();
@@ -40,7 +43,7 @@ function addItem() {
     }
 
     if (isNaN(price) || price < 0) {
-        showNotification('Por favor ingresa un precio válido', 'error');
+        showNotification('Por favor ingresa un precio válido o déjalo vacío', 'error');
         productPriceInput.focus();
         return;
     }
@@ -68,6 +71,22 @@ function addItem() {
     updateSummary();
 }
 
+// Función para actualizar el precio de un producto desde la lista
+function updateItemPrice(id, newPrice) {
+    const parsedPrice = parseFloat(newPrice);
+    const validPrice = !isNaN(parsedPrice) && parsedPrice >= 0 ? parsedPrice : 0;
+
+    items = items.map((item) => {
+        if (item.id === id) {
+            return { ...item, price: validPrice };
+        }
+        return item;
+    });
+
+    saveItems();
+    updateSummary();
+}
+
 // Función para renderizar los items en la pantalla
 function renderItems() {
     itemsList.innerHTML = '';
@@ -82,13 +101,29 @@ function renderItems() {
         items.forEach((item) => {
             const itemElement = document.createElement('div');
             itemElement.className = 'item';
+            
+            // Si el precio es 0, mostramos el campo listo para cargar el valor
+            const priceValue = item.price > 0 ? item.price : '';
+
             itemElement.innerHTML = `
-                <div class="item-details">
-                    <div class="item-name">${escapeHtml(item.name)}</div>
-                    <div class="item-price">Precio: <strong>$${item.price.toFixed(2)}</strong></div>
+                <div class="item-details" style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                    <div class="item-name" style="flex: 1;">${escapeHtml(item.name)}</div>
+                    <div class="item-price" style="display: flex; align-items: center; gap: 4px;">
+                        <span>$</span>
+                        <input 
+                            type="number" 
+                            placeholder="0.00" 
+                            min="0" 
+                            step="0.01" 
+                            value="${priceValue}"
+                            style="width: 80px; padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc;"
+                            onchange="updateItemPrice(${item.id}, this.value)"
+                            onkeyup="updateItemPrice(${item.id}, this.value)"
+                        />
+                    </div>
                 </div>
                 <div class="item-actions">
-                    <button class="delete-btn" onclick="deleteItem(${item.id})">🗑️ Eliminar</button>
+                    <button class="delete-btn" onclick="deleteItem(${item.id})">🗑️</button>
                 </div>
             `;
             itemsList.appendChild(itemElement);
@@ -153,7 +188,6 @@ function loadItems() {
 
 // Función para mostrar notificaciones (feedback al usuario)
 function showNotification(message, type = 'info') {
-    // Crear elemento de notificación
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
@@ -173,7 +207,6 @@ function showNotification(message, type = 'info') {
     notification.textContent = message;
     document.body.appendChild(notification);
 
-    // Eliminar después de 3 segundos
     setTimeout(() => {
         notification.style.animation = 'slideOutRight 0.3s ease';
         setTimeout(() => {
