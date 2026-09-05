@@ -48,11 +48,12 @@ function addItem() {
         return;
     }
 
-    // Crear objeto del item
+    // Crear objeto del item con cantidad inicial de 1
     const item = {
         id: Date.now(),
         name: name,
-        price: price
+        price: price,
+        quantity: 1
     };
 
     // Agregar a la lista
@@ -87,6 +88,22 @@ function updateItemPrice(id, newPrice) {
     updateSummary();
 }
 
+// Función para actualizar la cantidad de un producto
+function updateItemQuantity(id, newQuantity) {
+    const parsedQty = parseInt(newQuantity, 10);
+    const validQty = !isNaN(parsedQty) && parsedQty >= 1 ? parsedQty : 1;
+
+    items = items.map((item) => {
+        if (item.id === id) {
+            return { ...item, quantity: validQty };
+        }
+        return item;
+    });
+
+    saveItems();
+    updateSummary();
+}
+
 // Función para renderizar los items en la pantalla
 function renderItems() {
     itemsList.innerHTML = '';
@@ -102,24 +119,39 @@ function renderItems() {
             const itemElement = document.createElement('div');
             itemElement.className = 'item';
             
-            // Si el precio es 0, mostramos el campo listo para cargar el valor
+            // Asegurarse de mantener la cantidad actual o asignar 1 por defecto
+            const qty = item.quantity || 1;
             const priceValue = item.price > 0 ? item.price : '';
 
             itemElement.innerHTML = `
-                <div class="item-details" style="display: flex; align-items: center; gap: 10px; width: 100%;">
-                    <div class="item-name" style="flex: 1;">${escapeHtml(item.name)}</div>
-                    <div class="item-price" style="display: flex; align-items: center; gap: 4px;">
-                        <span>$</span>
-                        <input 
-                            type="number" 
-                            placeholder="0.00" 
-                            min="0" 
-                            step="0.01" 
-                            value="${priceValue}"
-                            style="width: 80px; padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc;"
-                            onchange="updateItemPrice(${item.id}, this.value)"
-                            onkeyup="updateItemPrice(${item.id}, this.value)"
-                        />
+                <div class="item-details" style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+                    <div class="item-name" style="font-weight: bold;">${escapeHtml(item.name)}</div>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div class="item-qty" style="display: flex; align-items: center; gap: 4px;">
+                            <span style="font-size: 0.85em; color: #666;">Cant:</span>
+                            <input 
+                                type="number" 
+                                min="1" 
+                                value="${qty}"
+                                style="width: 50px; padding: 4px; border-radius: 4px; border: 1px solid #ccc; text-align: center;"
+                                onchange="updateItemQuantity(${item.id}, this.value)"
+                                onkeyup="updateItemQuantity(${item.id}, this.value)"
+                            />
+                        </div>
+                        <div class="item-price" style="display: flex; align-items: center; gap: 4px;">
+                            <span style="font-size: 0.85em; color: #666;">Precio u.:</span>
+                            <span>$</span>
+                            <input 
+                                type="number" 
+                                placeholder="0.00" 
+                                min="0" 
+                                step="0.01" 
+                                value="${priceValue}"
+                                style="width: 75px; padding: 4px; border-radius: 4px; border: 1px solid #ccc;"
+                                onchange="updateItemPrice(${item.id}, this.value)"
+                                onkeyup="updateItemPrice(${item.id}, this.value)"
+                            />
+                        </div>
                     </div>
                 </div>
                 <div class="item-actions">
@@ -139,11 +171,14 @@ function deleteItem(id) {
     updateSummary();
 }
 
-// Función para actualizar el resumen (cantidad y total)
+// Función para actualizar el resumen (cantidad total de unidades y precio total)
 function updateSummary() {
-    itemCountSpan.textContent = items.length;
+    // Cuenta la suma total de unidades de productos
+    const totalUnits = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    itemCountSpan.textContent = totalUnits;
 
-    const total = items.reduce((sum, item) => sum + item.price, 0);
+    // Calcula el total sumando (precio × cantidad) de cada item
+    const total = items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
     totalPriceSpan.textContent = `$${total.toFixed(2)}`;
 }
 
